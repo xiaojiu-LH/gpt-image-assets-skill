@@ -1,10 +1,10 @@
-# Layer Contracts
+# 图层规范
 
-Use a fixed contract before generation. Do not improvise layer names after files are generated.
+生成前必须先固定图层规范。不要在图层文件生成后再临时发挥或改名。
 
-## Presets
+## 预设
 
-| Preset | Layers |
+| 预设 | 图层 |
 |---|---|
 | `ecommerce` | `subject,background,text,logo,decoration` |
 | `product` | `product,shadow-reflection,background,label-text,logo` |
@@ -12,16 +12,16 @@ Use a fixed contract before generation. Do not improvise layer names after files
 | `character` | `character,background,props,lighting-effects,text` |
 | `generic` | `subject,background,text,logo` |
 
-## Layer Roles
+## 图层职责
 
-- `subject`, `product`, `main-subject`, `character`: transparent PNG, only the main foreground object or person.
-- `background`: completed opaque scene with foreground removed and no empty silhouette.
-- `text`, `headline-text`, `body-text`, `label-text`: transparent PNG containing only visible text marks.
-- `logo`: transparent PNG containing only logo or brand mark.
-- `decoration`, `props`, `lighting-effects`, `shadow-reflection`: transparent PNG with only auxiliary production elements.
+- `subject`、`product`、`main-subject`、`character`：透明 PNG，只包含主要前景物体或人物。
+- `background`：完整的不透明背景，前景被移除后必须补全，不能留下空洞或剪影。
+- `text`、`headline-text`、`body-text`、`label-text`：透明 PNG，只包含可见文字。
+- `logo`：透明 PNG，只包含 logo 或品牌标志。
+- `decoration`、`props`、`lighting-effects`、`shadow-reflection`：透明 PNG，只包含辅助生产元素。
 
-## Naming Rules
+## 命名规则
 
-- Use lowercase ASCII slugs in file names.
-- Use the same names in `layers.json`, PSD layer records, QC reports, and retry notes.
-- If the user names exact layers, preserve their intent but normalize file names to slugs.
+- 文件名使用小写 ASCII slug。
+- `layers.json`、PSD 图层记录、QC 报告和重试说明必须使用同一套名称。
+- 如果用户指定了精确图层名，保留其语义，但文件名仍规范化为 slug。

@@ -1,29 +1,29 @@
-# QC Rubric
+# QC 质检标准
 
-Run QC after building the PSD. A passing delivery must satisfy these checks.
+PSD 组装完成后必须运行 QC。合格交付至少满足以下检查。
 
-## File Checks
+## 文件检查
 
-- PSD starts with `8BPS`.
-- PSD layer count is at least the contract layer count.
-- PSD layer names match the contract.
-- Every layer PNG exists.
-- Every layer PNG is 8-bit PNG and matches the canvas size.
+- PSD 以 `8BPS` 开头。
+- PSD 图层数量不少于图层规范要求。
+- PSD 图层名称与图层规范一致。
+- 每个图层 PNG 都存在。
+- 每个图层 PNG 都是 8-bit PNG，并且尺寸与画布一致。
 
-## Layer Checks
+## 图层检查
 
-- Foreground layers have useful transparency.
-- Background layer is mostly opaque.
-- Background layer has low transparent pixel ratio.
-- Subject/product layer is not fully opaque.
-- Text/logo layers may be empty only if the prompt did not require visible text/logo.
+- 前景层应有有效透明区域。
+- 背景层应基本不透明。
+- 背景层透明像素比例应很低。
+- 主体 / 产品层不能是整张完全不透明图。
+- 文字 / logo 层只有在用户需求没有明确文字或 logo 时才可以为空。
 
-## Failure Reason Format
+## 失败原因格式
 
-Use concise, layer-specific notes:
+使用简洁、按图层定位的问题说明：
 
 ```text
-subject: edge contains background pixels; background: transparent holes under product; logo: missing brand mark
+subject: 边缘粘了背景像素；background: 产品下方有透明空洞；logo: 品牌标志缺失
 ```
 
-Retry only the failed layer when the failure is isolated. Retry the full split if the base image or background completion caused multiple failures.
+如果失败只影响某个图层，只重试该图层。如果基准图或背景补全问题影响多个图层，则重跑整套拆层。

@@ -1,60 +1,60 @@
-# Prompt Templates
+# 提示词模板
 
-Use these templates with the base image as image input whenever possible.
+只要可行，就把基准图作为图像输入一起传给 image-2。
 
-## Base Image
+## 基准图
 
-Generate one coherent base image matching the user's request. Avoid asking for layers in the base image prompt.
+生成一张符合用户需求、构图完整的基准图。基准图提示词里不要要求分层，避免模型输出拼贴式图层说明。
 
-## Subject/Product Layer
+## 主体 / 产品层
 
-Create a transparent-background PNG layer containing only the main subject/product from the reference image.
+生成一张透明背景 PNG，只包含参考图中的主要主体或产品。
 
-Requirements:
+要求：
 
-- keep subject identity, shape, color, texture, and lighting
-- remove all background pixels
-- preserve natural edge detail
-- do not include text, logo, props, or background unless they are physically part of the subject
+- 保留主体身份、形状、颜色、材质和光照。
+- 移除所有背景像素。
+- 保留自然边缘细节。
+- 不包含文字、logo、道具或背景，除非这些元素是主体本身不可分割的一部分。
 
-## Background Layer
+## 背景层
 
-Create a full-canvas background PNG with foreground subject removed.
+生成一张全画布背景 PNG，前景主体必须被移除。
 
-Requirements:
+要求：
 
-- complete and inpaint the background behind the removed subject
-- no holes, cutout silhouettes, subject residue, or transparent gaps
-- no text or logo unless the layer contract explicitly requires them in background
+- 补全并修复主体被移除后的背景区域。
+- 不能有空洞、剪影、主体残留或透明缺口。
+- 不包含文字或 logo，除非图层规范明确要求它们留在背景里。
 
-## Text Layer
+## 文字层
 
-Create a transparent-background PNG containing only the visible text from the base image or requested design.
+生成一张透明背景 PNG，只包含基准图或设计需求中的可见文字。
 
-Requirements:
+要求：
 
-- no background
-- no subject pixels
-- preserve approximate position and color
-- if exact text is unknown, leave this layer empty only when the layer is optional
+- 不包含背景。
+- 不包含主体像素。
+- 尽量保留文字的位置、大小和颜色。
+- 如果无法确定精确文字，并且该层是可选层，可以留空。
 
-## Logo Layer
+## Logo 层
 
-Create a transparent-background PNG containing only logo or brand mark.
+生成一张透明背景 PNG，只包含 logo 或品牌标志。
 
-Requirements:
+要求：
 
-- no background
-- no subject pixels except logo attached to packaging when required
-- preserve approximate position and proportions
+- 不包含背景。
+- 除非 logo 印在包装上且必须作为包装内容保留，否则不包含主体像素。
+- 尽量保留 logo 的位置、比例和方向。
 
-## Retry Prompt
+## 重试提示
 
-When retrying a failed layer, append:
+重试失败图层时追加：
 
 ```text
-Previous failed layer attempt:
+上一次失败的图层尝试：
 {previous_failure}
 
-Fix only this failure. Keep canvas size, composition alignment, and layer role unchanged.
+只修复这个失败点。保持画布尺寸、构图对齐和图层职责不变。
 ```
