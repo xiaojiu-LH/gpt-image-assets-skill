@@ -26,7 +26,11 @@ The CLI builds a Responses payload:
 }
 ```
 
-When `--output-format psd` is passed, `output_format` becomes `psd` and the prompt is strengthened with layered PSD requirements when `--layered-psd` is present.
+When `--output-format psd` is passed, the request format depends on `--psd-toolchain`:
+
+- `endpoint`: send `output_format: "psd"` to the selected endpoint.
+- `local`: send `output_format: "png"`, then convert the returned PNG into a flattened PSD locally.
+- `auto`: use local PNG-to-PSD for `official`, and endpoint PSD for `proxy`.
 
 Direct `official` and `proxy` modes:
 
@@ -38,20 +42,32 @@ Direct `official` and `proxy` modes:
 6. Decode base64 to bytes.
 7. Validate file signature:
    - PNG: standard PNG signature.
+   - JPEG: SOI signature.
+   - WebP: RIFF/WEBP signature.
    - PSD: `8BPS`.
-8. Write to the requested output path.
+8. If local PSD toolchain is active, convert validated PNG bytes into a flattened RGB+alpha PSD and validate `8BPS`.
+9. Write to the requested output path.
 
 ## Output Format Behavior
 
-PNG is the default and safest output.
+PNG is the default and safest output. JPEG and WebP are supported for endpoints that support those official output formats.
 
-PSD is an endpoint capability, not something the CLI can synthesize after the fact. The CLI can request PSD, add layer instructions, and verify the returned bytes, but it cannot convert a flattened PNG into a true layered PSD.
+PSD has two modes:
 
-If PSD fails:
+- Endpoint PSD: the CLI requests PSD from a proxy or compatible endpoint, adds layer instructions when requested, and verifies the returned bytes.
+- Local flattened PSD: the CLI requests PNG, decodes it locally, and writes a valid flattened PSD container. This is useful with official OpenAI access, but it is not a true layered PSD.
+
+If endpoint PSD fails:
 
 - If the endpoint rejects `output_format: psd`, switch endpoint or fallback to PNG.
 - If the endpoint returns PNG while PSD was requested, the CLI fails with a format mismatch.
 - If Photoshop opens the PSD but layer quality is poor, retry with `--previous-failure`.
+
+If local PSD is used:
+
+- Do not claim independent layers.
+- Tell the user the file is a Photoshop-compatible flattened PSD.
+- Use a PSD-capable proxy when subject/background/text/logo must be independently editable.
 
 ## Agent Skills Packaging
 

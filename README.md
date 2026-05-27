@@ -2,7 +2,7 @@
 
 [中文说明](README.zh.md) | English
 
-> Turn GPT-Image-2 generation into a reusable Agent Skill: generate PNGs for normal image tasks and endpoint-supported layered PSD assets for editable production materials.
+> Turn GPT-Image-2 generation into a reusable Agent Skill: generate PNG/JPEG/WebP images, local-toolchain flattened PSD files, and endpoint-supported layered PSD assets.
 
 `gpt-image-assets` is an [Agent Skills](https://agentskills.io/)-compatible image generation skill. It can run in any skills-compatible AI agent runtime that can load `SKILL.md` and execute the bundled Node script.
 
@@ -13,8 +13,9 @@ It keeps only two direct access paths:
 
 It can request and validate:
 
-- PNG images
-- endpoint-supported layered PSD files
+- PNG/JPEG/WebP images
+- flattened PSD files converted locally from official PNG output
+- endpoint-supported layered PSD files from compatible proxy services
 
 Navigation: Examples · Installation and Usage · How It Works · Repository Structure · Security
 
@@ -105,6 +106,28 @@ node scripts/gpt_image_assets_cli.js generate \
   --output output/bedding-main-retry.psd
 ```
 
+### Example 4: Official OpenAI To Flattened PSD
+
+User:
+
+```text
+Use the official OpenAI image API and give me a PSD file for Photoshop.
+```
+
+The agent requests PNG from the official endpoint, then converts the PNG locally into a valid flattened PSD:
+
+```bash
+node scripts/gpt_image_assets_cli.js generate \
+  --mode official \
+  --permission-code "$OPENAI_API_KEY" \
+  --prompt "A clean premium ecommerce hero image for a transparent-shell retro radio on a white background" \
+  --output-format psd \
+  --psd-toolchain local \
+  --output output/radio.psd
+```
+
+This produces a Photoshop-compatible PSD container, but it is flattened. Use a PSD-capable proxy when independent subject/background/text/logo layers are required.
+
 ---
 
 ## Installation And Usage
@@ -173,6 +196,18 @@ node scripts/gpt_image_assets_cli.js generate \
   --output output/robot-sticker.png
 ```
 
+Official OpenAI to local flattened PSD:
+
+```bash
+node scripts/gpt_image_assets_cli.js generate \
+  --mode official \
+  --permission-code "$OPENAI_API_KEY" \
+  --prompt "A clean ecommerce hero image for a transparent-shell retro radio" \
+  --output-format psd \
+  --psd-toolchain local \
+  --output output/radio.psd
+```
+
 ---
 
 ## How It Works
@@ -188,8 +223,8 @@ node scripts/gpt_image_assets_cli.js generate \
 3. **Parse and write the output**  
    The CLI supports SSE and JSON Responses output, extracts `image_generation_call.result`, decodes base64, and writes the local file.
 
-4. **Validate the file format**  
-   PNG must pass the PNG file signature check. PSD must start with `8BPS`. The CLI does not pretend that a PNG is a PSD.
+4. **Validate or convert the file format**  
+   PNG/JPEG/WebP must pass signature checks. PSD must start with `8BPS`. In local PSD mode, the CLI validates the source PNG, converts it to a flattened PSD, and then validates the final PSD.
 
 Layered PSD flow:
 
@@ -201,6 +236,17 @@ request / input image
 → file signature validation
 → human or tool layer-quality inspection
 → retry with previous-failure if needed
+```
+
+Local PSD flow:
+
+```text
+request / input image
+→ official endpoint returns PNG
+→ PNG signature validation
+→ local PNG decoder + PSD writer
+→ flattened PSD file
+→ PSD signature validation
 ```
 
 ---
@@ -239,7 +285,8 @@ scripts/validate_skill.sh
 - Do not print credentials in logs or final answers.
 - Do not add reserved capacity, purchase keys, sessions, quota APIs, or relay job polling back into the skill.
 - Do not claim PSD success unless the output file validates as PSD.
-- PSD is an endpoint capability, not a CLI post-processing trick. If the endpoint does not support PSD, tell the user and switch to PNG or a PSD-capable proxy.
+- Distinguish local flattened PSD from endpoint-supported layered PSD. Do not claim independent layers when the file was produced by the local PNG-to-PSD toolchain.
+- Official OpenAI currently returns PNG/JPEG/WebP image formats; use `--psd-toolchain local` when the user needs a PSD container from official output.
 
 ---
 

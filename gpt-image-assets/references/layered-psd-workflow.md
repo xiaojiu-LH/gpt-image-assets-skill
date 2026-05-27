@@ -2,6 +2,11 @@
 
 Use this reference when the user asks for PSD, Photoshop-editable material, 分层 PSD, 图层分割, 电商素材, or PS 逐层修改.
 
+There are two PSD paths:
+
+- Endpoint layered PSD: a PSD-capable proxy returns a real layered PSD.
+- Local flattened PSD: official OpenAI returns PNG, then the CLI converts that PNG into a valid flattened PSD. This is useful when the user needs a `.psd` file container, but it does not create semantic layers.
+
 ## Goal
 
 Do not stop at "generate one finished image." Produce a material file that can be edited in Photoshop:
@@ -21,9 +26,17 @@ Do not stop at "generate one finished image." Produce a material file that can b
    - icon/sticker
    - character or scene material
 2. Lock the layer contract.
-3. Generate through official/proxy with `--output-format psd --layered-psd`.
+3. For true layers, generate through a PSD-capable proxy with `--output-format psd --psd-toolchain endpoint --layered-psd`.
 4. Inspect the result in Photoshop or a PSD-capable viewer.
 5. If failed, retry with `--previous-failure`.
+
+For official OpenAI access only, use:
+
+```bash
+--output-format psd --psd-toolchain local
+```
+
+Report the result as a flattened PSD, not a layered PSD.
 
 ## Layer Presets
 
@@ -75,8 +88,9 @@ Good failure notes are specific. Avoid vague notes like "not good" or "make it b
 
 If the endpoint cannot return PSD:
 
-1. Tell the user that the selected endpoint does not support PSD output.
-2. Offer PNG generation with transparent background where useful.
-3. Offer to switch to a PSD-capable proxy.
+1. Tell the user that the selected endpoint does not support true layered PSD output.
+2. Offer local flattened PSD generation from PNG when a `.psd` container is enough.
+3. Offer PNG generation where useful.
+4. Offer to switch to a PSD-capable proxy.
 
 Do not claim a layered PSD was produced when the file is actually PNG or a flattened bitmap.

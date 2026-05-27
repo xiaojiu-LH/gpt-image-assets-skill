@@ -1,6 +1,6 @@
 ---
 name: gpt-image-assets
-description: "Generate PNG images or endpoint-supported layered PSD assets with GPT-Image-2 through official OpenAI or third-party Responses-compatible APIs. Use for text-to-image, image-to-image, ecommerce visuals, Photoshop-editable PSD materials, layer-split PSD workflows, output validation, and retrying failed PSD layer quality checks."
+description: "Generate PNG/JPEG/WebP images, endpoint-supported layered PSD assets, or local-toolchain flattened PSD files with GPT-Image-2 through official OpenAI or third-party Responses-compatible APIs. Use for text-to-image, image-to-image, ecommerce visuals, Photoshop-editable PSD materials, layer-split PSD workflows, output validation, and retrying failed PSD layer quality checks."
 license: MIT
 compatibility: "Agent Skills-compatible runtime with Node.js 18+ and outbound network access to OpenAI or a Responses-compatible proxy."
 metadata:
@@ -13,7 +13,7 @@ metadata:
 
 ## Overview
 
-Use this Agent Skill when the user wants GPT-Image-2 image generation, image-to-image editing, ecommerce visuals, PNG files, or Photoshop-editable layered PSD assets.
+Use this Agent Skill when the user wants GPT-Image-2 image generation, image-to-image editing, ecommerce visuals, PNG/JPEG/WebP files, endpoint-supported layered PSD assets, or a flattened PSD produced by a local PNG-to-PSD toolchain.
 
 This skill is runtime-neutral. It follows the Agent Skills directory shape: this folder is the skill root, `SKILL.md` is the discoverable instruction file, scripts live under `scripts/`, and reference material lives under `references/`.
 
@@ -39,11 +39,13 @@ Default to PNG unless the user explicitly asks for PSD, layered PSD, Photoshop-e
 | User intent | Format | Extra action |
 |---|---|---|
 | Normal image generation | `png` | Generate directly |
+| Web/social asset that needs smaller file size | `jpeg` or `webp` | Generate directly |
 | Image-to-image edit | `png` | Pass `--image` |
-| Ecommerce material that must be edited in Photoshop | `psd` | Add `--layered-psd` and a layer contract |
-| PSD requested but endpoint rejects PSD | `png` fallback only after telling the user PSD is unsupported by the selected endpoint |
+| Ecommerce material that must be edited layer-by-layer in Photoshop | `psd` | Use proxy endpoint PSD with `--psd-toolchain endpoint --layered-psd` |
+| Official OpenAI path requested with PSD output | `psd` | Use local toolchain: request PNG from OpenAI, then convert to flattened PSD |
+| PSD requested but endpoint rejects PSD | Use local flattened PSD or PNG fallback after telling the user true layered PSD is unsupported by the selected endpoint |
 
-PNG is the stable baseline. PSD requires the selected official or proxy endpoint to actually return PSD bytes. The CLI validates file signatures: PNG must start as PNG, PSD must start with `8BPS`.
+PNG is the stable baseline. Official OpenAI image generation can produce PNG/JPEG/WebP, but not native PSD. The CLI can still produce a valid flattened PSD in official mode by requesting PNG first and converting it locally. True layered PSD requires a proxy endpoint that actually returns PSD bytes. The CLI validates file signatures: PNG/JPEG/WebP must match their signatures, PSD must start with `8BPS`.
 
 ## Access Choice
 
@@ -130,17 +132,33 @@ node scripts/gpt_image_assets_cli.js generate \
 
 Read [references/layered-psd-workflow.md](references/layered-psd-workflow.md) before generating PSD assets or when the user asks for 电商 PSD, 图层分割, 分层出图, or PS 可编辑素材.
 
+## Local PSD Toolchain
+
+Use this when the user wants a `.psd` file but only has official OpenAI API access. The CLI requests PNG from the official endpoint, decodes the PNG locally, and writes a valid flattened RGB+alpha PSD.
+
+```bash
+node scripts/gpt_image_assets_cli.js generate \
+  --mode official \
+  --permission-code "$OPENAI_API_KEY" \
+  --prompt "A clean ecommerce hero image for a transparent-shell retro radio on a white background" \
+  --output-format psd \
+  --psd-toolchain local \
+  --output output/radio.psd
+```
+
+Important: local-toolchain PSD is a valid Photoshop file, but it is flattened. It does not create semantic layers such as subject/background/text/logo. If the user asks for real independent layers, use a PSD-capable proxy endpoint or explain the limitation.
+
 ## Runtime Notes
 
 The CLI sends a Responses API request using:
 
 - text model: default `gpt-5.4`, configurable with `--model` or `GPT_IMAGE_TEXT_MODEL`
 - image tool model: default `gpt-image-2`, configurable with `--image-model` or `GPT_IMAGE_MODEL`
-- output format: `png` or `psd`
+- output format: `png`, `jpeg`, `webp`, or `psd`
 - size: default `1024x1536`
 - quality: default `high`
 
-For direct official/proxy requests, it parses SSE or JSON Responses output, extracts `image_generation_call.result`, decodes base64, validates the binary signature, and writes the result to disk.
+For direct official/proxy requests, it parses SSE or JSON Responses output, extracts `image_generation_call.result`, decodes base64, validates the binary signature, and writes the result to disk. For `--output-format psd --psd-toolchain local`, it validates the source PNG first, converts that PNG to a flattened PSD, then validates the final PSD signature.
 
 Read [references/access-modes.md](references/access-modes.md) when choosing official vs proxy. Read [references/runtime.md](references/runtime.md) when debugging endpoints, SSE parsing, output format mismatches, or Agent Skills packaging.
 
@@ -163,5 +181,6 @@ Keep credentials redacted.
 - Never print secrets.
 - Do not store keys in skill files.
 - Do not claim PSD success unless the written file validates as PSD.
-- If official mode rejects `psd`, explain that this endpoint does not support PSD and offer proxy mode or PNG fallback.
+- If official mode is asked for PSD, use the local flattened PSD toolchain by default, and clearly say it is not a true layered PSD.
+- If a true layered PSD is required, use a PSD-capable proxy endpoint or explain that official OpenAI does not currently return native PSD.
 - If the user needs exact product dimensions, logos, or text layout, recommend post-editing in PSD/Photoshop and treat generation as editable material, not final truth.

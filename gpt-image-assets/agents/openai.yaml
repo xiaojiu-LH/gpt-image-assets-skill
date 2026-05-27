@@ -1,7 +1,7 @@
 interface:
   display_name: "gpt-image-assets"
-  short_description: "通用 Agent Skill，用 GPT-Image-2 生成 PNG/PSD 素材。"
-  default_prompt: "Use $gpt-image-assets to generate a PNG image or endpoint-supported layered PSD through official OpenAI or a third-party Responses-compatible proxy."
+  short_description: "通用 Agent Skill，用 GPT-Image-2 生成 PNG/JPEG/WebP、本地 PSD 或代理分层 PSD 素材。"
+  default_prompt: "Use $gpt-image-assets to generate a PNG/JPEG/WebP image, a local flattened PSD through official OpenAI, or an endpoint-supported layered PSD through a third-party Responses-compatible proxy."
 
 policy:
   allow_implicit_invocation: true

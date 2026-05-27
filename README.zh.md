@@ -2,7 +2,7 @@
 
 中文 | [English](README.md)
 
-> 把 GPT-Image-2 生图能力沉淀成一个可复用的 Agent Skill：普通出 PNG，生产素材出可校验的分层 PSD。
+> 把 GPT-Image-2 生图能力沉淀成一个可复用的 Agent Skill：普通出 PNG/JPEG/WebP，官方路径可本地转扁平 PSD，代理路径可请求分层 PSD。
 
 `gpt-image-assets` 是一个基于 [Agent Skills](https://agentskills.io/) 协议的通用生图 skill。它可以在任何 skills-compatible 的 AI agent runtime 中运行，只要该 runtime 能读取 `SKILL.md`，并允许执行本 skill 内的 Node 脚本。
 
@@ -13,8 +13,9 @@
 
 它可以生成：
 
-- PNG 图片
-- 所选 endpoint 支持的分层 PSD 素材
+- PNG/JPEG/WebP 图片
+- 由官方 PNG 输出本地转换得到的扁平 PSD 文件
+- 所选 proxy endpoint 支持的分层 PSD 素材
 
 导航：效果示例 · 安装及使用方式 · 工作原理 · 仓库结构 · 安全说明
 
@@ -105,6 +106,28 @@ node scripts/gpt_image_assets_cli.js generate \
   --output output/bedding-main-retry.psd
 ```
 
+### 示例四：官方接口生成扁平 PSD
+
+用户：
+
+```text
+用 OpenAI 官方接口生成图片，但最后给我 PSD 文件。
+```
+
+Agent 会先向官方接口请求 PNG，再用本地工具链转换成可由 Photoshop 打开的扁平 PSD：
+
+```bash
+node scripts/gpt_image_assets_cli.js generate \
+  --mode official \
+  --permission-code "$OPENAI_API_KEY" \
+  --prompt "一张白底高级电商主图，主体是一台透明外壳复古收音机" \
+  --output-format psd \
+  --psd-toolchain local \
+  --output output/radio.psd
+```
+
+注意：这种 PSD 是有效的 Photoshop 文件，但不是语义分层 PSD。需要主体、背景、文字、logo 独立图层时，应使用支持 PSD 的第三方代理。
+
 ---
 
 ## 安装及使用方式
@@ -175,6 +198,18 @@ node scripts/gpt_image_assets_cli.js generate \
   --output output/robot-sticker.png
 ```
 
+官方接口转本地扁平 PSD：
+
+```bash
+node scripts/gpt_image_assets_cli.js generate \
+  --mode official \
+  --permission-code "$OPENAI_API_KEY" \
+  --prompt "一张白底高级电商主图，主体是一台透明外壳复古收音机" \
+  --output-format psd \
+  --psd-toolchain local \
+  --output output/radio.psd
+```
+
 ---
 
 ## 工作原理
@@ -190,8 +225,8 @@ node scripts/gpt_image_assets_cli.js generate \
 3. **解析与写入文件**  
    CLI 支持 SSE 和 JSON 两种返回形式，提取 `image_generation_call.result`，解码 base64，并写入本地输出路径。
 
-4. **校验输出格式**  
-   PNG 必须通过 PNG 文件签名校验；PSD 必须以 `8BPS` 开头。CLI 不会把 PNG 伪装成 PSD，也不会宣称接口不支持的能力已经完成。
+4. **校验或转换输出格式**  
+   PNG/JPEG/WebP 必须通过文件签名校验；PSD 必须以 `8BPS` 开头。使用本地 PSD 工具链时，CLI 会先校验源 PNG，再转换成扁平 PSD，并校验最终 PSD。
 
 分层 PSD 的核心流程是：
 
@@ -203,6 +238,17 @@ node scripts/gpt_image_assets_cli.js generate \
 → 校验文件签名
 → 人工或工具质检图层质量
 → 不合格则带 previous-failure 重试
+```
+
+本地 PSD 流程是：
+
+```text
+需求 / 原图
+→ 官方 endpoint 返回 PNG
+→ PNG 文件签名校验
+→ 本地 PNG 解码 + PSD 写入
+→ 生成扁平 PSD 文件
+→ PSD 文件签名校验
 ```
 
 ---
@@ -241,7 +287,8 @@ scripts/validate_skill.sh
 - 不要在日志或最终回答中打印凭据。
 - 不要把作者预留额度、购买码、session、quota 或 relay job 逻辑重新加回 skill。
 - 除非输出文件通过 PSD 签名校验，否则不要宣称 PSD 生成成功。
-- PSD 是 endpoint 能力，不是 CLI 后处理能力；如果接口不支持 PSD，应明确告知用户并切换到 PNG 或支持 PSD 的代理。
+- 区分本地扁平 PSD 和 endpoint 分层 PSD；本地 PNG-to-PSD 工具链不能宣称生成了独立图层。
+- OpenAI 官方接口当前输出 PNG/JPEG/WebP；如果用户需要官方路径下的 PSD 容器，使用 `--psd-toolchain local`。
 
 ---
 
