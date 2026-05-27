@@ -6,6 +6,8 @@
 
 `gpt-image-assets` is an [Agent Skills](https://agentskills.io/)-compatible image generation skill. It can run in any skills-compatible AI agent runtime that can load `SKILL.md` and execute the bundled Node script.
 
+This repository also includes `image-layer-psd`, a companion skill that takes a product-image request or source image, generates separate PNG layers with GPT Image, assembles a local multi-layer PSD, and runs layer QC/retry checks.
+
 It keeps only two direct access paths:
 
 - `official`: official OpenAI API key / permission code.
@@ -264,6 +266,19 @@ gpt-image-assets/
 │   └── runtime.md
 └── scripts/
     └── gpt_image_assets_cli.js
+```
+
+```text
+image-layer-psd/
+├── SKILL.md
+├── agents/
+│   └── openai.yaml
+├── references/
+│   ├── layer-contracts.md
+│   ├── prompt-templates.md
+│   └── qc-rubric.md
+└── scripts/
+    └── image_layer_psd_cli.js
 ```
 
 The repository root also contains:

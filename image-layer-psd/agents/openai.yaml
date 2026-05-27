@@ -1,0 +1,7 @@
+interface:
+  display_name: "image-layer-psd"
+  short_description: "将 GPT Image 生图结果拆成主体、背景、文字、logo 等 PNG 图层，并本地组装成多图层 PSD。"
+  default_prompt: "Use $image-layer-psd to plan layer contracts, generate separated PNG layers with GPT Image, assemble a local multi-layer PSD, and QC failed layers for retry."
+
+policy:
+  allow_implicit_invocation: true

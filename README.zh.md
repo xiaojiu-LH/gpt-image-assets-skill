@@ -6,6 +6,8 @@
 
 `gpt-image-assets` 是一个基于 [Agent Skills](https://agentskills.io/) 协议的通用生图 skill。它可以在任何 skills-compatible 的 AI agent runtime 中运行，只要该 runtime 能读取 `SKILL.md`，并允许执行本 skill 内的 Node 脚本。
 
+本仓库也包含配套 skill：`image-layer-psd`。它用于把产品图需求或原图拆成独立 PNG 图层，本地组装成多图层 PSD，并执行图层质检与失败重试。
+
 它只保留两种清晰的调用入口：
 
 - `official`：OpenAI 官方 API key / permission code。
@@ -266,6 +268,19 @@ gpt-image-assets/
 │   └── runtime.md
 └── scripts/
     └── gpt_image_assets_cli.js
+```
+
+```text
+image-layer-psd/
+├── SKILL.md
+├── agents/
+│   └── openai.yaml
+├── references/
+│   ├── layer-contracts.md
+│   ├── prompt-templates.md
+│   └── qc-rubric.md
+└── scripts/
+    └── image_layer_psd_cli.js
 ```
 
 根目录还包含：
