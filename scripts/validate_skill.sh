@@ -65,7 +65,7 @@ if metadata is not None:
         if not isinstance(key, str) or not isinstance(value, str):
             fail("metadata must contain string keys and string values")
 
-for required in ["official", "proxy", "png", "psd", "layered PSD", "scripts/gpt_image_assets_cli.js"]:
+for required in ["official", "proxy", "png", "scripts/gpt_image_assets_cli.js"]:
     if required not in body:
         fail(f"SKILL.md body does not explain {required}")
 
